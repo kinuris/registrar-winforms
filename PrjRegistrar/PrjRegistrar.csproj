@@ -1,0 +1,696 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CEF628A8-CEF0-4498-9845-739E2A60976A}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>PrjRegistrar</RootNamespace>
+    <AssemblyName>PrjRegistrar</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Registrar Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.5.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.5\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.CrystalReports.Design, Version=13.0.4000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
+    <Reference Include="CrystalDecisions.CrystalReports.Engine, Version=13.0.4000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
+    <Reference Include="CrystalDecisions.ReportSource, Version=13.0.4000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
+    <Reference Include="CrystalDecisions.Shared, Version=13.0.4000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
+    <Reference Include="CrystalDecisions.Windows.Forms, Version=13.0.4000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
+    <Reference Include="FlashControlV71, Version=1.0.3187.32366, Culture=neutral, PublicKeyToken=692fbea5521e1304" />
+    <Reference Include="Google.Protobuf, Version=3.19.4.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.19.4\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4, Version=1.2.6.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.1.2.6\lib\net46\K4os.Compression.LZ4.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4.Streams, Version=1.2.6.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.Streams.1.2.6\lib\net46\K4os.Compression.LZ4.Streams.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Hash.xxHash, Version=1.0.6.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Hash.xxHash.1.0.6\lib\net46\K4os.Hash.xxHash.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="MySql.Data, Version=8.0.29.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.29\lib\net48\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.Install" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Ubiety.Dns.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.29\lib\net48\Ubiety.Dns.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="ZstdNet, Version=1.4.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.29\lib\net48\ZstdNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CircularPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="FrmAuthorizationLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmAuthorizationLogin.Designer.cs">
+      <DependentUpon>FrmAuthorizationLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmChangeCourse.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmChangeCourse.Designer.cs">
+      <DependentUpon>FrmChangeCourse.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmChangePass.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmChangePass.Designer.cs">
+      <DependentUpon>FrmChangePass.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCourseMajor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCourseMajor.Designer.cs">
+      <DependentUpon>FrmCourseMajor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCourses.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCourses.Designer.cs">
+      <DependentUpon>FrmCourses.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCurriculum.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCurriculum.Designer.cs">
+      <DependentUpon>FrmCurriculum.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmCurriculumNew.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmCurriculumNew.designer.cs">
+      <DependentUpon>FrmCurriculumNew.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmDefaultPeriod.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmDefaultPeriod.Designer.cs">
+      <DependentUpon>FrmDefaultPeriod.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmFTPAccount.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmFTPAccount.designer.cs">
+      <DependentUpon>FrmFTPAccount.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecBasicSecondaryEd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecBasicSecondaryEd.Designer.cs">
+      <DependentUpon>FrmRecBasicSecondaryEd.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecCompletion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecCompletion.designer.cs">
+      <DependentUpon>FrmRecCompletion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecGradesheetVerification.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecGradesheetVerification.designer.cs">
+      <DependentUpon>FrmRecGradesheetVerification.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecHigherEdGradSchool.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecHigherEdGradSchool.Designer.cs">
+      <DependentUpon>FrmRecHigherEdGradSchool.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmHome.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmHome.Designer.cs">
+      <DependentUpon>FrmHome.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLogin.Designer.cs">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmMain.Designer.cs">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecImportGrades.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecImportGrades.designer.cs">
+      <DependentUpon>FrmRecImportGrades.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecNurseryKinder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecNurseryKinder.Designer.cs">
+      <DependentUpon>FrmRecNurseryKinder.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmPersonalData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmPersonalData.Designer.cs">
+      <DependentUpon>FrmPersonalData.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmProfilePicture.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmProfilePicture.Designer.cs">
+      <DependentUpon>FrmProfilePicture.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecTransferees.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecTransferees.designer.cs">
+      <DependentUpon>FrmRecTransferees.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRecTransfereesNew.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRecTransfereesNew.designer.cs">
+      <DependentUpon>FrmRecTransfereesNew.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmReportViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmReportViewer.Designer.cs">
+      <DependentUpon>FrmReportViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmRequirements.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmRequirements.Designer.cs">
+      <DependentUpon>FrmRequirements.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSearchEmployee.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSearchEmployee.designer.cs">
+      <DependentUpon>FrmSearchEmployee.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSearchHigherEdGradSchool.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSearchHigherEdGradSchool.Designer.cs">
+      <DependentUpon>FrmSearchHigherEdGradSchool.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSearchOptionalAcct.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSearchOptionalAcct.Designer.cs">
+      <DependentUpon>FrmSearchOptionalAcct.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSearchPersonalData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSearchPersonalData.Designer.cs">
+      <DependentUpon>FrmSearchPersonalData.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSignatories.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSignatories.designer.cs">
+      <DependentUpon>FrmSignatories.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSubjectsEnrolled.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSubjectsEnrolled.designer.cs">
+      <DependentUpon>FrmSubjectsEnrolled.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmTRRemarksBeginning.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmTRRemarksBeginning.designer.cs">
+      <DependentUpon>FrmTRRemarksBeginning.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmTRRemarksGeneral.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmTRRemarksGeneral.designer.cs">
+      <DependentUpon>FrmTRRemarksGeneral.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmWaitForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmWaitForm.Designer.cs">
+      <DependentUpon>FrmWaitForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmWaitFormFunc.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RptCHEDEnrolmentList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptCHEDEnrolmentList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptCHEDGenderBreakdown.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptCHEDGenderBreakdown.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptCHEDGradesCreditsEarned.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptCHEDGradesCreditsEarned.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptContinuingStudentsList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptContinuingStudentsList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptCurriculum.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptCurriculum.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptEnrolmentList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptEnrolmentList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptEnrolmentListByDepartment.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptEnrolmentListByDepartment.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptEnrolmentListByName.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptEnrolmentListByName.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptGenderList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptGenderList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptGradingSheet.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptGradingSheet.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptHonorableDismissal.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptHonorableDismissal.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptHonorableDismissalCascadingParameter.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptHonorableDismissalCascadingParameter.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptINCGradesList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptINCGradesList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptNewStudentsList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptNewStudentsList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptPersonalDataList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptPersonalDataList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptRegistrarFullname.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptRegistrarFullname.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptReligionList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptReligionList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptReportCard.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptReportCard.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptTranscript.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptTranscript.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptTranscriptCascadingParameter.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptTranscriptCascadingParameter.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptTransfereesStudentsList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptTransfereesStudentsList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="RptUnitingStudentsList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RptUnitingStudentsList.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <EmbeddedResource Include="FrmAuthorizationLogin.resx">
+      <DependentUpon>FrmAuthorizationLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmChangeCourse.resx">
+      <DependentUpon>FrmChangeCourse.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmChangePass.resx">
+      <DependentUpon>FrmChangePass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCourseMajor.resx">
+      <DependentUpon>FrmCourseMajor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCourses.resx">
+      <DependentUpon>FrmCourses.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCurriculum.resx">
+      <DependentUpon>FrmCurriculum.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmCurriculumNew.resx">
+      <DependentUpon>FrmCurriculumNew.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmDefaultPeriod.resx">
+      <DependentUpon>FrmDefaultPeriod.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmFTPAccount.resx">
+      <DependentUpon>FrmFTPAccount.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecBasicSecondaryEd.resx">
+      <DependentUpon>FrmRecBasicSecondaryEd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecCompletion.resx">
+      <DependentUpon>FrmRecCompletion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecGradesheetVerification.resx">
+      <DependentUpon>FrmRecGradesheetVerification.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecHigherEdGradSchool.resx">
+      <DependentUpon>FrmRecHigherEdGradSchool.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmHome.resx">
+      <DependentUpon>FrmHome.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmLogin.resx">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmMain.resx">
+      <DependentUpon>FrmMain.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecImportGrades.resx">
+      <DependentUpon>FrmRecImportGrades.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecNurseryKinder.resx">
+      <DependentUpon>FrmRecNurseryKinder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmPersonalData.resx">
+      <DependentUpon>FrmPersonalData.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmProfilePicture.resx">
+      <DependentUpon>FrmProfilePicture.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecTransferees.resx">
+      <DependentUpon>FrmRecTransferees.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRecTransfereesNew.resx">
+      <DependentUpon>FrmRecTransfereesNew.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmReportViewer.resx">
+      <DependentUpon>FrmReportViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmRequirements.resx">
+      <DependentUpon>FrmRequirements.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSearchEmployee.resx">
+      <DependentUpon>FrmSearchEmployee.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSearchHigherEdGradSchool.resx">
+      <DependentUpon>FrmSearchHigherEdGradSchool.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSearchOptionalAcct.resx">
+      <DependentUpon>FrmSearchOptionalAcct.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSearchPersonalData.resx">
+      <DependentUpon>FrmSearchPersonalData.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSignatories.resx">
+      <DependentUpon>FrmSignatories.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSubjectsEnrolled.resx">
+      <DependentUpon>FrmSubjectsEnrolled.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmTRRemarksBeginning.resx">
+      <DependentUpon>FrmTRRemarksBeginning.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmTRRemarksGeneral.resx">
+      <DependentUpon>FrmTRRemarksGeneral.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmWaitForm.resx">
+      <DependentUpon>FrmWaitForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="RptCHEDEnrolmentList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptCHEDEnrolmentList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptCHEDGenderBreakdown.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptCHEDGenderBreakdown.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptCHEDGradesCreditsEarned.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptCHEDGradesCreditsEarned.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptContinuingStudentsList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptContinuingStudentsList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptCurriculum.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptCurriculum.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptEnrolmentList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptEnrolmentList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptEnrolmentListByDepartment.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptEnrolmentListByDepartment.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptEnrolmentListByName.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptEnrolmentListByName.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptGenderList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptGenderList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptGradingSheet.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptGradingSheet.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptHonorableDismissal.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptHonorableDismissal.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptHonorableDismissalCascadingParameter.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptHonorableDismissalCascadingParameter.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptINCGradesList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptINCGradesList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptNewStudentsList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptNewStudentsList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptPersonalDataList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptPersonalDataList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptRegistrarFullname.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptRegistrarFullname.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptReligionList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptReligionList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptReportCard.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptReportCard.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptTranscript.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptTranscript.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptTranscriptCascadingParameter.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptTranscriptCascadingParameter.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptTransfereesStudentsList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptTransfereesStudentsList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RptUnitingStudentsList.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>RptUnitingStudentsList.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Default Profile Picture.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{C0C07587-41A7-46C8-8FBD-3F9C8EBE2DDC}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Registrar Icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
