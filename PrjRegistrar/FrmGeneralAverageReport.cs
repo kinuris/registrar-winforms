@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using System.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace PrjRegistrar
 {
@@ -12,12 +14,24 @@ namespace PrjRegistrar
         readonly string connectionString = ConfigurationManager.ConnectionStrings["filcis_db"].ConnectionString;
         private string schoolYear;
         private string course;
+        private string yearLevel;
 
+        // Updated constructor to accept year level parameter
+        public FrmGeneralAverageReport(string selectedSchoolYear, string selectedCourse, string selectedYearLevel = "All Year Levels")
+        {
+            InitializeComponent();
+            schoolYear = selectedSchoolYear;
+            course = selectedCourse;
+            yearLevel = selectedYearLevel;
+        }
+
+        // Keep backward compatibility with old constructor
         public FrmGeneralAverageReport(string selectedSchoolYear, string selectedCourse)
         {
             InitializeComponent();
             schoolYear = selectedSchoolYear;
             course = selectedCourse;
+            yearLevel = "All Year Levels";
         }
 
         private void FrmGeneralAverageReport_Load(object sender, EventArgs e)
@@ -26,6 +40,23 @@ namespace PrjRegistrar
             {
                 lblSchoolYear.Text = $"School Year: {schoolYear}";
                 lblCourse.Text = $"Course: {course}";
+                
+                // Only update year level label if it exists in the designer
+                try
+                {
+                    if (this.Controls.Find("lblYearLevel", true).Length > 0)
+                    {
+                        var lblYearLevelControl = this.Controls.Find("lblYearLevel", true)[0] as Label;
+                        if (lblYearLevelControl != null)
+                        {
+                            lblYearLevelControl.Text = $"Year Level: {(yearLevel == "All Year Levels" ? "All" : yearLevel)}";
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore if year level label doesn't exist
+                }
                 
                 LoadGeneralAverageData();
             }
@@ -43,15 +74,16 @@ namespace PrjRegistrar
                 {
                     mySqlConnection.Open();
 
+                    // Build the year level filter condition
+                    string yearLevelCondition = "";
+                    if (!string.IsNullOrEmpty(yearLevel) && yearLevel != "All Year Levels")
+                    {
+                        yearLevelCondition = "AND sp.cis_yrlevel = @yearLevel";
+                    }
+
                     // Query to calculate general average and ranking
-                    string query = @"
+                    string query = $@"
                         SELECT 
-                            ROW_NUMBER() OVER (ORDER BY AVG(CASE 
-                                WHEN se.cis_fgrade IN ('1.0', '1.25', '1.5', '1.75', '2.0', '2.25', '2.5', '2.75', '3.0') 
-                                THEN CAST(se.cis_fgrade AS DECIMAL(3,2))
-                                WHEN se.cis_fgrade = '5.0' THEN 5.0
-                                ELSE NULL 
-                            END) ASC) AS class_rank,
                             sp.cis_studno,
                             CONCAT(sp.cis_lastname, ', ', sp.cis_firstname, 
                                    CASE 
@@ -60,6 +92,7 @@ namespace PrjRegistrar
                                        ELSE ''
                                    END) AS full_name,
                             sp.cis_course,
+                            sp.cis_yrlevel,
                             COUNT(CASE 
                                 WHEN se.cis_fgrade IN ('1.0', '1.25', '1.5', '1.75', '2.0', '2.25', '2.5', '2.75', '3.0', '5.0') 
                                 THEN 1 
@@ -81,10 +114,11 @@ namespace PrjRegistrar
                         INNER JOIN reg_subjenrolled se ON sp.cis_fcuidno = se.cis_fcuidno
                         WHERE se.cis_schlyr = @schoolYear 
                         AND sp.cis_course = @course
+                        {yearLevelCondition}
                         AND se.cis_fgrade IS NOT NULL 
                         AND se.cis_fgrade != ''
                         AND se.cis_fgrade NOT IN ('8', '9', '10', '11', '18', '56', '66')  -- Exclude non-numerical grades
-                        GROUP BY sp.cis_fcuidno, sp.cis_studno, sp.cis_lastname, sp.cis_firstname, sp.cis_midname, sp.cis_course
+                        GROUP BY sp.cis_fcuidno, sp.cis_studno, sp.cis_lastname, sp.cis_firstname, sp.cis_midname, sp.cis_course, sp.cis_yrlevel
                         HAVING general_average IS NOT NULL
                         ORDER BY general_average ASC, sp.cis_lastname ASC, sp.cis_firstname ASC";
 
@@ -92,6 +126,12 @@ namespace PrjRegistrar
                     {
                         mySqlCommand.Parameters.AddWithValue("@schoolYear", schoolYear);
                         mySqlCommand.Parameters.AddWithValue("@course", course);
+                        
+                        // Only add year level parameter if it's not "All Year Levels"
+                        if (!string.IsNullOrEmpty(yearLevel) && yearLevel != "All Year Levels")
+                        {
+                            mySqlCommand.Parameters.AddWithValue("@yearLevel", yearLevel);
+                        }
 
                         MySqlDataAdapter adapter = new MySqlDataAdapter(mySqlCommand);
                         DataTable dataTable = new DataTable();
@@ -99,26 +139,30 @@ namespace PrjRegistrar
 
                         if (dataTable.Rows.Count == 0)
                         {
-                            MessageBox.Show($"No student records found for School Year '{schoolYear}' and Course '{course}'.", 
+                            string yearLevelText = string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "all year levels" : $"Year Level {yearLevel}";
+                            MessageBox.Show($"No student records found for School Year '{schoolYear}', Course '{course}', and {yearLevelText}.", 
                                           "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             return;
                         }
 
+                        // Calculate rankings with proper tie handling
+                        DataTable rankedDataTable = CalculateRankingsWithTies(dataTable);
+                        
                         // Bind data to DataGridView
-                        dgvGeneralAverage.DataSource = dataTable;
+                        dgvGeneralAverage.DataSource = rankedDataTable;
                         
                         // Configure column headers and formatting
                         ConfigureDataGridView();
                         
                         // Update summary labels
-                        lblTotalStudents.Text = $"Total Students: {dataTable.Rows.Count}";
+                        lblTotalStudents.Text = $"Total Students: {rankedDataTable.Rows.Count}";
                         
-                        if (dataTable.Rows.Count > 0)
+                        if (rankedDataTable.Rows.Count > 0)
                         {
                             // Calculate class average
                             decimal classAverage = 0;
                             int count = 0;
-                            foreach (DataRow row in dataTable.Rows)
+                            foreach (DataRow row in rankedDataTable.Rows)
                             {
                                 if (row["general_average"] != DBNull.Value)
                                 {
@@ -133,7 +177,7 @@ namespace PrjRegistrar
                             }
 
                             // Find top student
-                            DataRow topStudent = dataTable.Rows[0];
+                            DataRow topStudent = rankedDataTable.Rows[0];
                             lblTopStudent.Text = $"Top Student: {topStudent["full_name"]} (GWA: {topStudent["general_average"]})";
                         }
                     }
@@ -142,6 +186,83 @@ namespace PrjRegistrar
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading general average data: {ex.Message}", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private DataTable CalculateRankingsWithTies(DataTable originalDataTable)
+        {
+            // Create a new DataTable with rankings
+            DataTable rankedTable = originalDataTable.Clone();
+            rankedTable.Columns.Add("class_rank", typeof(decimal));
+
+            // Convert to list for easier processing
+            var studentData = new List<DataRow>();
+            foreach (DataRow row in originalDataTable.Rows)
+            {
+                studentData.Add(row);
+            }
+
+            // Sort on general average (ascending - lower is better) and then by name
+            studentData = studentData.OrderBy(r => Convert.ToDecimal(r["general_average"]))
+                                   .ThenBy(r => r["full_name"].ToString())
+                                   .ToList();
+
+            // Calculate rankings with tie handling
+            int currentRank = 1;
+            decimal? previousGrade = null;
+            var tiedStudents = new List<DataRow>();
+
+            for (int i = 0; i < studentData.Count; i++)
+            {
+                decimal currentGrade = Convert.ToDecimal(studentData[i]["general_average"]);
+
+                // If this is a different grade from the previous one, process any tied students
+                if (previousGrade.HasValue && currentGrade != previousGrade.Value)
+                {
+                    // Assign tied rank to all students with the same grade
+                    AssignTiedRank(tiedStudents, currentRank - tiedStudents.Count, rankedTable);
+                    currentRank = i + 1; // Next rank after the tied group
+                    tiedStudents.Clear();
+                }
+
+                // Add current student to tied group
+                tiedStudents.Add(studentData[i]);
+                previousGrade = currentGrade;
+            }
+
+            // Process the last group of tied students
+            if (tiedStudents.Count > 0)
+            {
+                AssignTiedRank(tiedStudents, currentRank - tiedStudents.Count + 1, rankedTable);
+            }
+
+            return rankedTable;
+        }
+
+        private void AssignTiedRank(List<DataRow> tiedStudents, int startRank, DataTable rankedTable)
+        {
+            if (tiedStudents.Count == 1)
+            {
+                // No tie, assign regular rank
+                DataRow newRow = rankedTable.NewRow();
+                newRow.ItemArray = tiedStudents[0].ItemArray;
+                newRow["class_rank"] = startRank;
+                rankedTable.Rows.Add(newRow);
+            }
+            else
+            {
+                // Calculate tied rank (average of positions)
+                int endRank = startRank + tiedStudents.Count - 1;
+                decimal tiedRank = (startRank + endRank) / 2.0m;
+
+                // Assign tied rank to all students
+                foreach (DataRow student in tiedStudents)
+                {
+                    DataRow newRow = rankedTable.NewRow();
+                    newRow.ItemArray = student.ItemArray;
+                    newRow["class_rank"] = tiedRank;
+                    rankedTable.Rows.Add(newRow);
+                }
             }
         }
 
@@ -165,6 +286,14 @@ namespace PrjRegistrar
 
             dgvGeneralAverage.Columns["cis_course"].HeaderText = "Course";
             dgvGeneralAverage.Columns["cis_course"].Width = 80;
+
+            // Add year level column if it exists
+            if (dgvGeneralAverage.Columns.Contains("cis_yrlevel"))
+            {
+                dgvGeneralAverage.Columns["cis_yrlevel"].HeaderText = "Year Level";
+                dgvGeneralAverage.Columns["cis_yrlevel"].Width = 80;
+                dgvGeneralAverage.Columns["cis_yrlevel"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            }
 
             dgvGeneralAverage.Columns["total_subjects"].HeaderText = "Total Subjects";
             dgvGeneralAverage.Columns["total_subjects"].Width = 100;
@@ -221,11 +350,23 @@ namespace PrjRegistrar
             }
         }
 
+        private void BtnPreview_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ShowPrintPreview();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error showing print preview: {ex.Message}", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void BtnPrint_Click(object sender, EventArgs e)
         {
             try
             {
-                // Create a simple print preview
+                // Direct print without preview
                 PrintDataGridView();
             }
             catch (Exception ex)
@@ -234,11 +375,46 @@ namespace PrjRegistrar
             }
         }
 
+        private void ShowPrintPreview()
+        {
+            try
+            {
+                // Create print document
+                System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
+                printDocument.PrintPage += PrintDocument_PrintPage;
+
+                // Create and show print preview dialog
+                PrintPreviewDialog printPreviewDialog = new PrintPreviewDialog();
+                printPreviewDialog.Document = printDocument;
+                printPreviewDialog.WindowState = FormWindowState.Maximized;
+                printPreviewDialog.Text = "General Average Report - Print Preview";
+                
+                // Set print preview dialog properties
+                printPreviewDialog.UseAntiAlias = true;
+                printPreviewDialog.AutoScrollMargin = new Size(10, 10);
+                printPreviewDialog.AutoScrollMinSize = new Size(400, 400);
+                
+                DialogResult result = printPreviewDialog.ShowDialog();
+                
+                // If user wants to print from preview, show print dialog
+                if (result == DialogResult.OK)
+                {
+                    PrintDataGridView();
+                }
+                
+                printPreviewDialog.Dispose();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error showing print preview: {ex.Message}", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void PrintDataGridView()
         {
             try
             {
-                // Simple print functionality - you can enhance this with Crystal Reports if needed
+                // Simple print functionality
                 PrintDialog printDialog = new PrintDialog();
                 System.Drawing.Printing.PrintDocument printDocument = new System.Drawing.Printing.PrintDocument();
 
@@ -258,45 +434,133 @@ namespace PrjRegistrar
 
         private void PrintDocument_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
-            // Basic print layout - you can enhance this as needed
+            // Define fonts
             Font headerFont = new Font("Arial", 16, FontStyle.Bold);
-            Font subHeaderFont = new Font("Arial", 12, FontStyle.Regular);
-            Font bodyFont = new Font("Arial", 10, FontStyle.Regular);
+            Font subHeaderFont = new Font("Arial", 14, FontStyle.Bold);
+            Font bodyFont = new Font("Arial", 11, FontStyle.Regular);
+            Font smallFont = new Font("Arial", 10, FontStyle.Italic);
+            Font tableHeaderFont = new Font("Arial", 12, FontStyle.Bold);
+            Font tableDataFont = new Font("Arial", 11, FontStyle.Regular);
 
-            float yPos = 100;
+            // Define brushes and pens
+            Brush blackBrush = Brushes.Black;
+            Pen blackPen = new Pen(Color.Black, 1);
+
+            float yPos = 80;
             float leftMargin = e.MarginBounds.Left;
+            float rightMargin = e.MarginBounds.Right;
+            float pageWidth = rightMargin - leftMargin;
 
-            // Print header
-            e.Graphics.DrawString("GENERAL AVERAGE REPORT", headerFont, Brushes.Black, leftMargin, yPos);
+            // Print university header
+            e.Graphics.DrawString("FILAMER CHRISTIAN UNIVERSITY", headerFont, blackBrush, leftMargin, yPos);
+            yPos += 25;
+
+            e.Graphics.DrawString("Roxas City", bodyFont, blackBrush, leftMargin, yPos);
             yPos += 40;
 
-            e.Graphics.DrawString($"School Year: {schoolYear}", subHeaderFont, Brushes.Black, leftMargin, yPos);
+            // Print report title
+            string reportTitle = $"STUDENTS GENERAL AVERAGE AND CLASS RANKING";
+            e.Graphics.DrawString(reportTitle, subHeaderFont, blackBrush, leftMargin, yPos);
             yPos += 25;
 
-            e.Graphics.DrawString($"Course: {course}", subHeaderFont, Brushes.Black, leftMargin, yPos);
-            yPos += 25;
-
-            e.Graphics.DrawString($"Generated on: {DateTime.Now:MMMM dd, yyyy}", subHeaderFont, Brushes.Black, leftMargin, yPos);
+            string courseYearTitle = $"{course} {(string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "" : yearLevel)} {schoolYear}";
+            e.Graphics.DrawString(courseYearTitle, subHeaderFont, blackBrush, leftMargin, yPos);
             yPos += 40;
 
-            // Print column headers
-            string header = "Rank\tStudent No.\tStudent Name\t\t\tGeneral Average";
-            e.Graphics.DrawString(header, bodyFont, Brushes.Black, leftMargin, yPos);
-            yPos += 25;
+            // Print run date
+            string runDate = $"rundate: {DateTime.Now:dd/MM/yyyy HH:mm:ss tt}";
+            e.Graphics.DrawString(runDate, smallFont, blackBrush, leftMargin, yPos);
+            yPos += 25; // Reduced spacing to prevent overlap
 
-            // Print data rows (limited to fit on page)
+            // Draw top line - moved down to avoid overlap
+            e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
+            yPos += 15; // Increased space after line
+
+            // Print table headers
+            float nameColumnStart = leftMargin;
+            float nameColumnWidth = pageWidth * 0.6f;
+            float gradeColumnStart = nameColumnStart + nameColumnWidth;
+            float gradeColumnWidth = pageWidth * 0.2f;
+            float rankColumnStart = gradeColumnStart + gradeColumnWidth;
+            float rankColumnWidth = pageWidth * 0.2f;
+
+            // First line of headers
+            e.Graphics.DrawString("STUDENT NAME", tableHeaderFont, blackBrush, nameColumnStart, yPos);
+            e.Graphics.DrawString("AVERAGE", tableHeaderFont, blackBrush, gradeColumnStart + 50, yPos);
+            e.Graphics.DrawString("CLASS", tableHeaderFont, blackBrush, rankColumnStart + 60, yPos);
+            yPos += 20;
+
+            // Second line of headers
+            e.Graphics.DrawString("GRADE", tableHeaderFont, blackBrush, gradeColumnStart + 50, yPos);
+            e.Graphics.DrawString("RANKING", tableHeaderFont, blackBrush, rankColumnStart + 40, yPos);
+            yPos += 20; // Increased space before separator line
+
+            // Draw header separator line
+            e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
+            yPos += 18; // Increased space after separator line
+
+            // Print student data
             int rowCount = 0;
+            int maxRowsPerPage = 22; // Reduced to account for better spacing
+
             foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
             {
-                if (rowCount >= 30) break; // Limit rows per page
+                if (rowCount >= maxRowsPerPage) break;
                 if (row.Cells["class_rank"].Value != null)
                 {
-                    string line = $"{row.Cells["class_rank"].Value}\t{row.Cells["cis_studno"].Value}\t{row.Cells["full_name"].Value}\t\t\t{row.Cells["general_average"].Value:F2}";
-                    e.Graphics.DrawString(line, bodyFont, Brushes.Black, leftMargin, yPos);
-                    yPos += 20;
+                    string studentName = row.Cells["full_name"].Value?.ToString() ?? "";
+                    string averageGrade = Convert.ToDecimal(row.Cells["general_average"].Value).ToString("F2");
+                    
+                    // Handle tied rankings with proper decimal formatting
+                    string classRank = "";
+                    if (row.Cells["class_rank"].Value != null)
+                    {
+                        decimal rankValue = Convert.ToDecimal(row.Cells["class_rank"].Value);
+                        
+                        // If it's a whole number, show as integer, otherwise show with decimal
+                        if (rankValue % 1 == 0)
+                        {
+                            classRank = ((int)rankValue).ToString();
+                        }
+                        else
+                        {
+                            classRank = rankValue.ToString("F1"); // Show one decimal place for ties
+                        }
+                    }
+
+                    // Print student data
+                    e.Graphics.DrawString(studentName.ToUpper(), tableDataFont, blackBrush, nameColumnStart, yPos);
+                    
+                    // Right-align the grade
+                    SizeF gradeSize = e.Graphics.MeasureString(averageGrade, tableDataFont);
+                    e.Graphics.DrawString(averageGrade, tableDataFont, blackBrush, gradeColumnStart + gradeColumnWidth - gradeSize.Width - 10, yPos);
+                    
+                    // Right-align the rank
+                    SizeF rankSize = e.Graphics.MeasureString(classRank, tableDataFont);
+                    e.Graphics.DrawString(classRank, tableDataFont, blackBrush, rankColumnStart + rankColumnWidth - rankSize.Width - 10, yPos);
+
+                    yPos += 20; // Consistent row spacing
                     rowCount++;
                 }
             }
+
+            // Draw bottom line
+            yPos += 15; // Space before bottom line
+            e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
+            yPos += 20;
+
+            // Print record count
+            string recordCount = $"Record: {dgvGeneralAverage.Rows.Count}/{dgvGeneralAverage.Rows.Count}";
+            e.Graphics.DrawString(recordCount, smallFont, blackBrush, leftMargin, yPos);
+
+            // Dispose of created objects
+            headerFont.Dispose();
+            subHeaderFont.Dispose();
+            bodyFont.Dispose();
+            smallFont.Dispose();
+            tableHeaderFont.Dispose();
+            tableDataFont.Dispose();
+            blackPen.Dispose();
         }
 
         private void BtnExportExcel_Click(object sender, EventArgs e)
@@ -318,26 +582,43 @@ namespace PrjRegistrar
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
                 saveFileDialog.DefaultExt = "csv";
-                saveFileDialog.FileName = $"General_Average_{course}_{schoolYear}.csv";
+                
+                string yearLevelSuffix = string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "AllLevels" : $"YL{yearLevel}";
+                saveFileDialog.FileName = $"General_Average_{course}_{yearLevelSuffix}_{schoolYear}.csv";
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     System.Text.StringBuilder sb = new System.Text.StringBuilder();
                     
                     // Add headers
-                    sb.AppendLine($"General Average Report - {course} - {schoolYear}");
+                    string yearLevelText = string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "All Year Levels" : $"Year Level {yearLevel}";
+                    sb.AppendLine($"General Average Report - {course} - {yearLevelText} - {schoolYear}");
                     sb.AppendLine($"Generated on: {DateTime.Now:MMMM dd, yyyy hh:mm tt}");
                     sb.AppendLine();
                     
                     // Add column headers
-                    sb.AppendLine("Rank,Student No.,Student Name,Course,Total Subjects,General Average,Credits Earned,Failed Subjects");
+                    if (dgvGeneralAverage.Columns.Contains("cis_yrlevel"))
+                    {
+                        sb.AppendLine("Rank,Student No.,Student Name,Course,Year Level,Total Subjects,General Average,Credits Earned,Failed Subjects");
+                    }
+                    else
+                    {
+                        sb.AppendLine("Rank,Student No.,Student Name,Course,Total Subjects,General Average,Credits Earned,Failed Subjects");
+                    }
                     
                     // Add data rows
                     foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
                     {
                         if (row.Cells["class_rank"].Value != null)
                         {
-                            sb.AppendLine($"{row.Cells["class_rank"].Value},{row.Cells["cis_studno"].Value},\"{row.Cells["full_name"].Value}\",{row.Cells["cis_course"].Value},{row.Cells["total_subjects"].Value},{row.Cells["general_average"].Value:F2},{row.Cells["total_credits_earned"].Value},{row.Cells["failed_subjects"].Value}");
+                            if (dgvGeneralAverage.Columns.Contains("cis_yrlevel"))
+                            {
+                                sb.AppendLine($"{row.Cells["class_rank"].Value},{row.Cells["cis_studno"].Value},\"{row.Cells["full_name"].Value}\",{row.Cells["cis_course"].Value},{row.Cells["cis_yrlevel"].Value},{row.Cells["total_subjects"].Value},{row.Cells["general_average"].Value:F2},{row.Cells["total_credits_earned"].Value},{row.Cells["failed_subjects"].Value}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{row.Cells["class_rank"].Value},{row.Cells["cis_studno"].Value},\"{row.Cells["full_name"].Value}\",{row.Cells["cis_course"].Value},{row.Cells["total_subjects"].Value},{row.Cells["general_average"].Value:F2},{row.Cells["total_credits_earned"].Value},{row.Cells["failed_subjects"].Value}");
+                            }
                         }
                     }
                     

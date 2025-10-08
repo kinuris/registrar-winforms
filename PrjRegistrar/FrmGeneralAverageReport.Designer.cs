@@ -29,6 +29,7 @@ namespace PrjRegistrar
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.lblYearLevel = new System.Windows.Forms.Label();
             this.lblCourse = new System.Windows.Forms.Label();
             this.lblSchoolYear = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -40,6 +41,7 @@ namespace PrjRegistrar
             this.panel3 = new System.Windows.Forms.Panel();
             this.btnClose = new System.Windows.Forms.Button();
             this.btnExportExcel = new System.Windows.Forms.Button();
+            this.btnPreview = new System.Windows.Forms.Button();
             this.btnPrint = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvGeneralAverage)).BeginInit();
@@ -50,6 +52,7 @@ namespace PrjRegistrar
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(120)))), ((int)(((byte)(212)))));
+            this.panel1.Controls.Add(this.lblYearLevel);
             this.panel1.Controls.Add(this.lblCourse);
             this.panel1.Controls.Add(this.lblSchoolYear);
             this.panel1.Controls.Add(this.label1);
@@ -58,6 +61,17 @@ namespace PrjRegistrar
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1200, 80);
             this.panel1.TabIndex = 0;
+            // 
+            // lblYearLevel
+            // 
+            this.lblYearLevel.AutoSize = true;
+            this.lblYearLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblYearLevel.ForeColor = System.Drawing.Color.White;
+            this.lblYearLevel.Location = new System.Drawing.Point(550, 45);
+            this.lblYearLevel.Name = "lblYearLevel";
+            this.lblYearLevel.Size = new System.Drawing.Size(86, 18);
+            this.lblYearLevel.TabIndex = 3;
+            this.lblYearLevel.Text = "Year Level:";
             // 
             // lblCourse
             // 
@@ -158,6 +172,7 @@ namespace PrjRegistrar
             this.panel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.panel3.Controls.Add(this.btnClose);
             this.panel3.Controls.Add(this.btnExportExcel);
+            this.panel3.Controls.Add(this.btnPreview);
             this.panel3.Controls.Add(this.btnPrint);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel3.Location = new System.Drawing.Point(0, 510);
@@ -175,7 +190,7 @@ namespace PrjRegistrar
             this.btnClose.Location = new System.Drawing.Point(1090, 15);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(90, 35);
-            this.btnClose.TabIndex = 2;
+            this.btnClose.TabIndex = 3;
             this.btnClose.Text = "&Close";
             this.btnClose.UseVisualStyleBackColor = false;
             this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
@@ -190,10 +205,25 @@ namespace PrjRegistrar
             this.btnExportExcel.Location = new System.Drawing.Point(990, 15);
             this.btnExportExcel.Name = "btnExportExcel";
             this.btnExportExcel.Size = new System.Drawing.Size(90, 35);
-            this.btnExportExcel.TabIndex = 1;
+            this.btnExportExcel.TabIndex = 2;
             this.btnExportExcel.Text = "&Export";
             this.btnExportExcel.UseVisualStyleBackColor = false;
             this.btnExportExcel.Click += new System.EventHandler(this.BtnExportExcel_Click);
+            // 
+            // btnPreview
+            // 
+            this.btnPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(75)))), ((int)(((byte)(75)))));
+            this.btnPreview.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPreview.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPreview.ForeColor = System.Drawing.Color.White;
+            this.btnPreview.Location = new System.Drawing.Point(790, 15);
+            this.btnPreview.Name = "btnPreview";
+            this.btnPreview.Size = new System.Drawing.Size(90, 35);
+            this.btnPreview.TabIndex = 0;
+            this.btnPreview.Text = "Pre&view";
+            this.btnPreview.UseVisualStyleBackColor = false;
+            this.btnPreview.Click += new System.EventHandler(this.BtnPreview_Click);
             // 
             // btnPrint
             // 
@@ -205,7 +235,7 @@ namespace PrjRegistrar
             this.btnPrint.Location = new System.Drawing.Point(890, 15);
             this.btnPrint.Name = "btnPrint";
             this.btnPrint.Size = new System.Drawing.Size(90, 35);
-            this.btnPrint.TabIndex = 0;
+            this.btnPrint.TabIndex = 1;
             this.btnPrint.Text = "&Print";
             this.btnPrint.UseVisualStyleBackColor = false;
             this.btnPrint.Click += new System.EventHandler(this.BtnPrint_Click);
@@ -243,12 +273,14 @@ namespace PrjRegistrar
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblSchoolYear;
         private System.Windows.Forms.Label lblCourse;
+        private System.Windows.Forms.Label lblYearLevel;
         private System.Windows.Forms.DataGridView dgvGeneralAverage;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label lblTotalStudents;
         private System.Windows.Forms.Label lblClassAverage;
         private System.Windows.Forms.Label lblTopStudent;
         private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Button btnPreview;
         private System.Windows.Forms.Button btnPrint;
         private System.Windows.Forms.Button btnExportExcel;
         private System.Windows.Forms.Button btnClose;

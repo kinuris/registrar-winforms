@@ -277,6 +277,7 @@
     <Compile Include="FrmRequirements.Designer.cs">
       <DependentUpon>FrmRequirements.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmRptStudentAverage.cs" />
     <Compile Include="FrmSearchEmployee.cs">
       <SubType>Form</SubType>
     </Compile>
