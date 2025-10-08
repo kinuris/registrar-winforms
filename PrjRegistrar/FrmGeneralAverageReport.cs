@@ -449,6 +449,8 @@ namespace PrjRegistrar
             Font smallFont = new Font("Arial", 10, FontStyle.Italic);
             Font tableHeaderFont = new Font("Arial", 12, FontStyle.Bold);
             Font tableDataFont = new Font("Arial", 11, FontStyle.Regular);
+            Font signatureFont = new Font("Arial", 10, FontStyle.Regular);
+            Font signatureBoldFont = new Font("Arial", 10, FontStyle.Bold);
 
             // Define brushes and pens
             Brush blackBrush = Brushes.Black;
@@ -513,10 +515,6 @@ namespace PrjRegistrar
 
             // Print student data with smart row limiting
             int rowCount = 0;
-            
-            // When topStudents = 0, show ALL students (no limit)
-            // When topStudents > 0, show only that many students
-            // For preview/print, we may need to paginate large datasets
             int maxRowsPerPage;
             if (topStudents > 0)
             {
@@ -564,6 +562,25 @@ namespace PrjRegistrar
             // Print record count
             string recordCount = $"Record: {dgvGeneralAverage.Rows.Count}/{dgvGeneralAverage.Rows.Count}";
             e.Graphics.DrawString(recordCount, smallFont, blackBrush, leftMargin, yPos);
+            yPos += 40;
+
+            // Add signature section
+            // "Prepared by:" and "Noted by:" labels
+            float leftSignatureStart = leftMargin;
+            float rightSignatureStart = leftMargin + (pageWidth / 2) + 50;
+
+            e.Graphics.DrawString("Prepared by:", signatureFont, blackBrush, leftSignatureStart, yPos);
+            e.Graphics.DrawString("Noted by:", signatureFont, blackBrush, rightSignatureStart, yPos);
+            yPos += 60; // Space for signature lines
+
+            // Signature names and titles
+            e.Graphics.DrawString("ANNAROSE B. SAMSONA", signatureBoldFont, blackBrush, leftSignatureStart, yPos);
+            e.Graphics.DrawString("ESTHER B. SARMIENTO", signatureBoldFont, blackBrush, rightSignatureStart, yPos);
+            yPos += 20;
+
+            // Titles
+            e.Graphics.DrawString("Records Clerk", signatureFont, blackBrush, leftSignatureStart, yPos);
+            e.Graphics.DrawString("Acting Registrar", signatureFont, blackBrush, rightSignatureStart, yPos);
 
             // Dispose of created objects
             headerFont.Dispose();
@@ -572,6 +589,8 @@ namespace PrjRegistrar
             smallFont.Dispose();
             tableHeaderFont.Dispose();
             tableDataFont.Dispose();
+            signatureFont.Dispose();
+            signatureBoldFont.Dispose();
             blackPen.Dispose();
         }
 
