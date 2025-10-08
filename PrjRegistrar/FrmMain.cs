@@ -21,6 +21,36 @@ namespace PrjRegistrar
         public FrmMain()
         {
             InitializeComponent();
+
+            btnRptGenAverage.Click += (sender, e) =>
+            {
+                try
+                {
+                    // Show parameter selection form
+                    FrmGeneralAverageParams frmParams = new FrmGeneralAverageParams();
+                    frmParams.ShowDialog();
+
+                    if (frmParams.parametersSelected)
+                    {
+                        // Get selected parameters
+                        string schoolYear = FrmGeneralAverageParams.selectedSchoolYear;
+                        string course = FrmGeneralAverageParams.selectedCourse;
+
+                        // Show the general average report
+                        FrmGeneralAverageReport frmReport = new FrmGeneralAverageReport(schoolYear, course);
+                        frmReport.ShowDialog();
+                        frmReport.Dispose();
+                    }
+
+                    frmParams.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error generating General Average report: {ex.Message}", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+
+            };
         }
 
         private void FrmMain_Load(object sender, EventArgs e)

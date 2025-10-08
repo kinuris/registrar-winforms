@@ -175,6 +175,18 @@
     <Compile Include="FrmFTPAccount.designer.cs">
       <DependentUpon>FrmFTPAccount.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmGeneralAverageParams.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmGeneralAverageParams.Designer.cs">
+      <DependentUpon>FrmGeneralAverageParams.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FrmGeneralAverageReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmGeneralAverageReport.Designer.cs">
+      <DependentUpon>FrmGeneralAverageReport.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmRecBasicSecondaryEd.cs">
       <SubType>Form</SubType>
     </Compile>
