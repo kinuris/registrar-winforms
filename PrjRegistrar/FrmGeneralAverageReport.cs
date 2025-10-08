@@ -4,8 +4,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using System.Configuration;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace PrjRegistrar
 {
@@ -84,6 +82,12 @@ namespace PrjRegistrar
                     // Query to calculate general average and ranking
                     string query = $@"
                         SELECT 
+                            ROW_NUMBER() OVER (ORDER BY AVG(CASE 
+                                WHEN se.cis_fgrade IN ('1.0', '1.25', '1.5', '1.75', '2.0', '2.25', '2.5', '2.75', '3.0') 
+                                THEN CAST(se.cis_fgrade AS DECIMAL(3,2))
+                                WHEN se.cis_fgrade = '5.0' THEN 5.0
+                                ELSE NULL 
+                            END) ASC) AS class_rank,
                             sp.cis_studno,
                             CONCAT(sp.cis_lastname, ', ', sp.cis_firstname, 
                                    CASE 
@@ -145,24 +149,27 @@ namespace PrjRegistrar
                             return;
                         }
 
-                        // Calculate rankings with proper tie handling
-                        DataTable rankedDataTable = CalculateRankingsWithTies(dataTable);
+                        // Add a display_rank column for proper tie handling
+                        dataTable.Columns.Add("display_rank", typeof(string));
                         
+                        // Calculate proper rankings with tie detection
+                        CalculateDisplayRanks(dataTable);
+
                         // Bind data to DataGridView
-                        dgvGeneralAverage.DataSource = rankedDataTable;
+                        dgvGeneralAverage.DataSource = dataTable;
                         
                         // Configure column headers and formatting
                         ConfigureDataGridView();
                         
                         // Update summary labels
-                        lblTotalStudents.Text = $"Total Students: {rankedDataTable.Rows.Count}";
+                        lblTotalStudents.Text = $"Total Students: {dataTable.Rows.Count}";
                         
-                        if (rankedDataTable.Rows.Count > 0)
+                        if (dataTable.Rows.Count > 0)
                         {
                             // Calculate class average
                             decimal classAverage = 0;
                             int count = 0;
-                            foreach (DataRow row in rankedDataTable.Rows)
+                            foreach (DataRow row in dataTable.Rows)
                             {
                                 if (row["general_average"] != DBNull.Value)
                                 {
@@ -177,7 +184,7 @@ namespace PrjRegistrar
                             }
 
                             // Find top student
-                            DataRow topStudent = rankedDataTable.Rows[0];
+                            DataRow topStudent = dataTable.Rows[0];
                             lblTopStudent.Text = $"Top Student: {topStudent["full_name"]} (GWA: {topStudent["general_average"]})";
                         }
                     }
@@ -189,79 +196,47 @@ namespace PrjRegistrar
             }
         }
 
-        private DataTable CalculateRankingsWithTies(DataTable originalDataTable)
+        private void CalculateDisplayRanks(DataTable dataTable)
         {
-            // Create a new DataTable with rankings
-            DataTable rankedTable = originalDataTable.Clone();
-            rankedTable.Columns.Add("class_rank", typeof(decimal));
-
-            // Convert to list for easier processing
-            var studentData = new List<DataRow>();
-            foreach (DataRow row in originalDataTable.Rows)
+            // Group students by their general average to detect ties
+            var gradeGroups = new System.Collections.Generic.Dictionary<decimal, System.Collections.Generic.List<int>>();
+            
+            for (int i = 0; i < dataTable.Rows.Count; i++)
             {
-                studentData.Add(row);
-            }
-
-            // Sort on general average (ascending - lower is better) and then by name
-            studentData = studentData.OrderBy(r => Convert.ToDecimal(r["general_average"]))
-                                   .ThenBy(r => r["full_name"].ToString())
-                                   .ToList();
-
-            // Calculate rankings with tie handling
-            int currentRank = 1;
-            decimal? previousGrade = null;
-            var tiedStudents = new List<DataRow>();
-
-            for (int i = 0; i < studentData.Count; i++)
-            {
-                decimal currentGrade = Convert.ToDecimal(studentData[i]["general_average"]);
-
-                // If this is a different grade from the previous one, process any tied students
-                if (previousGrade.HasValue && currentGrade != previousGrade.Value)
+                if (dataTable.Rows[i]["general_average"] != DBNull.Value)
                 {
-                    // Assign tied rank to all students with the same grade
-                    AssignTiedRank(tiedStudents, currentRank - tiedStudents.Count, rankedTable);
-                    currentRank = i + 1; // Next rank after the tied group
-                    tiedStudents.Clear();
+                    decimal avg = Convert.ToDecimal(dataTable.Rows[i]["general_average"]);
+                    
+                    if (!gradeGroups.ContainsKey(avg))
+                    {
+                        gradeGroups[avg] = new System.Collections.Generic.List<int>();
+                    }
+                    gradeGroups[avg].Add(i);
                 }
-
-                // Add current student to tied group
-                tiedStudents.Add(studentData[i]);
-                previousGrade = currentGrade;
             }
-
-            // Process the last group of tied students
-            if (tiedStudents.Count > 0)
+            
+            // Assign display ranks with T- prefix for ties
+            foreach (var gradeGroup in gradeGroups)
             {
-                AssignTiedRank(tiedStudents, currentRank - tiedStudents.Count + 1, rankedTable);
-            }
-
-            return rankedTable;
-        }
-
-        private void AssignTiedRank(List<DataRow> tiedStudents, int startRank, DataTable rankedTable)
-        {
-            if (tiedStudents.Count == 1)
-            {
-                // No tie, assign regular rank
-                DataRow newRow = rankedTable.NewRow();
-                newRow.ItemArray = tiedStudents[0].ItemArray;
-                newRow["class_rank"] = startRank;
-                rankedTable.Rows.Add(newRow);
-            }
-            else
-            {
-                // Calculate tied rank (average of positions)
-                int endRank = startRank + tiedStudents.Count - 1;
-                decimal tiedRank = (startRank + endRank) / 2.0m;
-
-                // Assign tied rank to all students
-                foreach (DataRow student in tiedStudents)
+                var rowIndices = gradeGroup.Value;
+                
+                if (rowIndices.Count > 1)
                 {
-                    DataRow newRow = rankedTable.NewRow();
-                    newRow.ItemArray = student.ItemArray;
-                    newRow["class_rank"] = tiedRank;
-                    rankedTable.Rows.Add(newRow);
+                    // This is a tie - use T- prefix
+                    int baseRank = Convert.ToInt32(dataTable.Rows[rowIndices[0]]["class_rank"]);
+                    string displayRank = $"T-{baseRank}";
+                    
+                    foreach (int rowIndex in rowIndices)
+                    {
+                        dataTable.Rows[rowIndex]["display_rank"] = displayRank;
+                    }
+                }
+                else
+                {
+                    // No tie - use simple rank number
+                    int rowIndex = rowIndices[0];
+                    int rank = Convert.ToInt32(dataTable.Rows[rowIndex]["class_rank"]);
+                    dataTable.Rows[rowIndex]["display_rank"] = rank.ToString();
                 }
             }
         }
@@ -273,46 +248,59 @@ namespace PrjRegistrar
             dgvGeneralAverage.AlternatingRowsDefaultCellStyle.Font = new Font("Tahoma", 9);
             dgvGeneralAverage.ColumnHeadersDefaultCellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
 
-            // Configure column headers and widths
-            dgvGeneralAverage.Columns["class_rank"].HeaderText = "Rank";
-            dgvGeneralAverage.Columns["class_rank"].Width = 60;
-            dgvGeneralAverage.Columns["class_rank"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            // Hide the original class_rank column
+            dgvGeneralAverage.Columns["class_rank"].Visible = false;
+
+            // Configure display_rank column (the one with T- prefix for ties)
+            dgvGeneralAverage.Columns["display_rank"].HeaderText = "Rank";
+            dgvGeneralAverage.Columns["display_rank"].Width = 80;
+            dgvGeneralAverage.Columns["display_rank"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvGeneralAverage.Columns["display_rank"].DisplayIndex = 0; // Show as first column
 
             dgvGeneralAverage.Columns["cis_studno"].HeaderText = "Student No.";
             dgvGeneralAverage.Columns["cis_studno"].Width = 120;
+            dgvGeneralAverage.Columns["cis_studno"].DisplayIndex = 1;
 
             dgvGeneralAverage.Columns["full_name"].HeaderText = "Student Name";
             dgvGeneralAverage.Columns["full_name"].Width = 250;
+            dgvGeneralAverage.Columns["full_name"].DisplayIndex = 2;
 
             dgvGeneralAverage.Columns["cis_course"].HeaderText = "Course";
             dgvGeneralAverage.Columns["cis_course"].Width = 80;
+            dgvGeneralAverage.Columns["cis_course"].DisplayIndex = 3;
 
             // Add year level column if it exists
+            int displayIndex = 4;
             if (dgvGeneralAverage.Columns.Contains("cis_yrlevel"))
             {
                 dgvGeneralAverage.Columns["cis_yrlevel"].HeaderText = "Year Level";
                 dgvGeneralAverage.Columns["cis_yrlevel"].Width = 80;
                 dgvGeneralAverage.Columns["cis_yrlevel"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                dgvGeneralAverage.Columns["cis_yrlevel"].DisplayIndex = displayIndex++;
             }
 
             dgvGeneralAverage.Columns["total_subjects"].HeaderText = "Total Subjects";
             dgvGeneralAverage.Columns["total_subjects"].Width = 100;
             dgvGeneralAverage.Columns["total_subjects"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvGeneralAverage.Columns["total_subjects"].DisplayIndex = displayIndex++;
 
             dgvGeneralAverage.Columns["general_average"].HeaderText = "General Average";
             dgvGeneralAverage.Columns["general_average"].Width = 120;
             dgvGeneralAverage.Columns["general_average"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgvGeneralAverage.Columns["general_average"].DefaultCellStyle.Format = "F2";
+            dgvGeneralAverage.Columns["general_average"].DisplayIndex = displayIndex++;
 
             dgvGeneralAverage.Columns["total_credits_earned"].HeaderText = "Credits Earned";
             dgvGeneralAverage.Columns["total_credits_earned"].Width = 100;
             dgvGeneralAverage.Columns["total_credits_earned"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvGeneralAverage.Columns["total_credits_earned"].DisplayIndex = displayIndex++;
 
             dgvGeneralAverage.Columns["failed_subjects"].HeaderText = "Failed Subjects";
             dgvGeneralAverage.Columns["failed_subjects"].Width = 100;
             dgvGeneralAverage.Columns["failed_subjects"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvGeneralAverage.Columns["failed_subjects"].DisplayIndex = displayIndex++;
 
-            // Color coding for ranks
+            // Color coding for ranks based on display_rank
             dgvGeneralAverage.CellFormatting += DgvGeneralAverage_CellFormatting;
 
             // Auto-resize columns to fit content
@@ -321,30 +309,36 @@ namespace PrjRegistrar
 
         private void DgvGeneralAverage_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (dgvGeneralAverage.Columns[e.ColumnIndex].Name == "class_rank")
+            if (dgvGeneralAverage.Columns[e.ColumnIndex].Name == "display_rank")
             {
                 if (e.Value != null)
                 {
-                    int rank = Convert.ToInt32(e.Value);
+                    string rankStr = e.Value.ToString();
                     
-                    // Color coding for top ranks
-                    if (rank == 1)
+                    // Extract numeric rank (remove T- prefix if present)
+                    string numericPart = rankStr.Replace("T-", "");
+                    
+                    if (int.TryParse(numericPart, out int rank))
                     {
-                        e.CellStyle.BackColor = Color.Gold;
-                        e.CellStyle.ForeColor = Color.Black;
-                        e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
-                    }
-                    else if (rank == 2)
-                    {
-                        e.CellStyle.BackColor = Color.Silver;
-                        e.CellStyle.ForeColor = Color.Black;
-                        e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
-                    }
-                    else if (rank == 3)
-                    {
-                        e.CellStyle.BackColor = Color.FromArgb(205, 127, 50); // Bronze
-                        e.CellStyle.ForeColor = Color.White;
-                        e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
+                        // Color coding for top ranks
+                        if (rank == 1)
+                        {
+                            e.CellStyle.BackColor = Color.Gold;
+                            e.CellStyle.ForeColor = Color.Black;
+                            e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
+                        }
+                        else if (rank == 2)
+                        {
+                            e.CellStyle.BackColor = Color.Silver;
+                            e.CellStyle.ForeColor = Color.Black;
+                            e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
+                        }
+                        else if (rank == 3)
+                        {
+                            e.CellStyle.BackColor = Color.FromArgb(205, 127, 50); // Bronze
+                            e.CellStyle.ForeColor = Color.White;
+                            e.CellStyle.Font = new Font("Tahoma", 9, FontStyle.Bold);
+                        }
                     }
                 }
             }
@@ -468,13 +462,13 @@ namespace PrjRegistrar
             yPos += 40;
 
             // Print run date
-            string runDate = $"rundate: {DateTime.Now:dd/MM/yyyy HH:mm:ss tt}";
+            string runDate = $"generated: {DateTime.Now:dd/MM/yyyy HH:mm:ss tt}";
             e.Graphics.DrawString(runDate, smallFont, blackBrush, leftMargin, yPos);
-            yPos += 25; // Reduced spacing to prevent overlap
+            yPos += 25;
 
-            // Draw top line - moved down to avoid overlap
+            // Draw top line
             e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
-            yPos += 15; // Increased space after line
+            yPos += 15;
 
             // Print table headers
             float nameColumnStart = leftMargin;
@@ -487,46 +481,32 @@ namespace PrjRegistrar
             // First line of headers
             e.Graphics.DrawString("STUDENT NAME", tableHeaderFont, blackBrush, nameColumnStart, yPos);
             e.Graphics.DrawString("AVERAGE", tableHeaderFont, blackBrush, gradeColumnStart + 50, yPos);
-            e.Graphics.DrawString("CLASS", tableHeaderFont, blackBrush, rankColumnStart + 60, yPos);
+            e.Graphics.DrawString("CLASS", tableHeaderFont, blackBrush, rankColumnStart + 50, yPos);
             yPos += 20;
 
             // Second line of headers
-            e.Graphics.DrawString("GRADE", tableHeaderFont, blackBrush, gradeColumnStart + 50, yPos);
+            e.Graphics.DrawString("GRADE", tableHeaderFont, blackBrush, gradeColumnStart + 60, yPos);
             e.Graphics.DrawString("RANKING", tableHeaderFont, blackBrush, rankColumnStart + 40, yPos);
-            yPos += 20; // Increased space before separator line
+            yPos += 25;
 
             // Draw header separator line
             e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
-            yPos += 18; // Increased space after separator line
+            yPos += 18;
 
             // Print student data
             int rowCount = 0;
-            int maxRowsPerPage = 22; // Reduced to account for better spacing
+            int maxRowsPerPage = 22;
 
             foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
             {
                 if (rowCount >= maxRowsPerPage) break;
-                if (row.Cells["class_rank"].Value != null)
+                if (row.Cells["display_rank"].Value != null)
                 {
                     string studentName = row.Cells["full_name"].Value?.ToString() ?? "";
                     string averageGrade = Convert.ToDecimal(row.Cells["general_average"].Value).ToString("F2");
                     
-                    // Handle tied rankings with proper decimal formatting
-                    string classRank = "";
-                    if (row.Cells["class_rank"].Value != null)
-                    {
-                        decimal rankValue = Convert.ToDecimal(row.Cells["class_rank"].Value);
-                        
-                        // If it's a whole number, show as integer, otherwise show with decimal
-                        if (rankValue % 1 == 0)
-                        {
-                            classRank = ((int)rankValue).ToString();
-                        }
-                        else
-                        {
-                            classRank = rankValue.ToString("F1"); // Show one decimal place for ties
-                        }
-                    }
+                    // Use display_rank which includes T- prefix for ties
+                    string classRank = row.Cells["display_rank"].Value?.ToString() ?? "";
 
                     // Print student data
                     e.Graphics.DrawString(studentName.ToUpper(), tableDataFont, blackBrush, nameColumnStart, yPos);
@@ -539,13 +519,13 @@ namespace PrjRegistrar
                     SizeF rankSize = e.Graphics.MeasureString(classRank, tableDataFont);
                     e.Graphics.DrawString(classRank, tableDataFont, blackBrush, rankColumnStart + rankColumnWidth - rankSize.Width - 10, yPos);
 
-                    yPos += 20; // Consistent row spacing
+                    yPos += 20;
                     rowCount++;
                 }
             }
 
             // Draw bottom line
-            yPos += 15; // Space before bottom line
+            yPos += 15;
             e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
             yPos += 20;
 
@@ -606,18 +586,28 @@ namespace PrjRegistrar
                         sb.AppendLine("Rank,Student No.,Student Name,Course,Total Subjects,General Average,Credits Earned,Failed Subjects");
                     }
                     
-                    // Add data rows
+                    // Add data rows using display_rank
                     foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
                     {
-                        if (row.Cells["class_rank"].Value != null)
+                        if (row.Cells["display_rank"].Value != null)
                         {
+                            string rank = row.Cells["display_rank"].Value?.ToString() ?? "";
+                            string studentNo = row.Cells["cis_studno"].Value?.ToString() ?? "";
+                            string fullName = row.Cells["full_name"].Value?.ToString() ?? "";
+                            string courseStr = row.Cells["cis_course"].Value?.ToString() ?? "";
+                            string totalSubjects = row.Cells["total_subjects"].Value?.ToString() ?? "";
+                            string genAvg = row.Cells["general_average"].Value != null ? Convert.ToDecimal(row.Cells["general_average"].Value).ToString("F2") : "";
+                            string creditsEarned = row.Cells["total_credits_earned"].Value?.ToString() ?? "";
+                            string failedSubjects = row.Cells["failed_subjects"].Value?.ToString() ?? "";
+                            
                             if (dgvGeneralAverage.Columns.Contains("cis_yrlevel"))
                             {
-                                sb.AppendLine($"{row.Cells["class_rank"].Value},{row.Cells["cis_studno"].Value},\"{row.Cells["full_name"].Value}\",{row.Cells["cis_course"].Value},{row.Cells["cis_yrlevel"].Value},{row.Cells["total_subjects"].Value},{row.Cells["general_average"].Value:F2},{row.Cells["total_credits_earned"].Value},{row.Cells["failed_subjects"].Value}");
+                                string yearLevelStr = row.Cells["cis_yrlevel"].Value?.ToString() ?? "";
+                                sb.AppendLine($"{rank},{studentNo},\"{fullName}\",{courseStr},{yearLevelStr},{totalSubjects},{genAvg},{creditsEarned},{failedSubjects}");
                             }
                             else
                             {
-                                sb.AppendLine($"{row.Cells["class_rank"].Value},{row.Cells["cis_studno"].Value},\"{row.Cells["full_name"].Value}\",{row.Cells["cis_course"].Value},{row.Cells["total_subjects"].Value},{row.Cells["general_average"].Value:F2},{row.Cells["total_credits_earned"].Value},{row.Cells["failed_subjects"].Value}");
+                                sb.AppendLine($"{rank},{studentNo},\"{fullName}\",{courseStr},{totalSubjects},{genAvg},{creditsEarned},{failedSubjects}");
                             }
                         }
                     }
