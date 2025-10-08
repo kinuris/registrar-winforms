@@ -31,6 +31,11 @@ namespace PrjRegistrar
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.numTopStudents = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
+            this.cboYearLevel = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.cboCourse = new System.Windows.Forms.ComboBox();
             this.cboSchoolYear = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -39,6 +44,7 @@ namespace PrjRegistrar
             this.btnCancel = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numTopStudents)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -64,6 +70,11 @@ namespace PrjRegistrar
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.numTopStudents);
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.cboYearLevel);
+            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.cboCourse);
             this.groupBox1.Controls.Add(this.cboSchoolYear);
             this.groupBox1.Controls.Add(this.label3);
@@ -71,10 +82,64 @@ namespace PrjRegistrar
             this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(16, 80);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(452, 120);
+            this.groupBox1.Size = new System.Drawing.Size(452, 200);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Report Parameters";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.Color.Gray;
+            this.label5.Location = new System.Drawing.Point(120, 176);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(127, 13);
+            this.label5.TabIndex = 7;
+            this.label5.Text = "(0 = Show all students)";
+            // 
+            // numTopStudents
+            // 
+            this.numTopStudents.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.numTopStudents.Location = new System.Drawing.Point(120, 152);
+            this.numTopStudents.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numTopStudents.Name = "numTopStudents";
+            this.numTopStudents.Size = new System.Drawing.Size(120, 22);
+            this.numTopStudents.TabIndex = 6;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(20, 155);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(94, 16);
+            this.label6.TabIndex = 8;
+            this.label6.Text = "Top Students:";
+            // 
+            // cboYearLevel
+            // 
+            this.cboYearLevel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboYearLevel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cboYearLevel.FormattingEnabled = true;
+            this.cboYearLevel.Location = new System.Drawing.Point(120, 112);
+            this.cboYearLevel.Name = "cboYearLevel";
+            this.cboYearLevel.Size = new System.Drawing.Size(200, 24);
+            this.cboYearLevel.TabIndex = 5;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(20, 115);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(79, 16);
+            this.label4.TabIndex = 4;
+            this.label4.Text = "Year Level:";
             // 
             // cboCourse
             // 
@@ -122,7 +187,7 @@ namespace PrjRegistrar
             this.btnGenerate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnGenerate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnGenerate.ForeColor = System.Drawing.Color.White;
-            this.btnGenerate.Location = new System.Drawing.Point(280, 220);
+            this.btnGenerate.Location = new System.Drawing.Point(280, 300);
             this.btnGenerate.Name = "btnGenerate";
             this.btnGenerate.Size = new System.Drawing.Size(90, 35);
             this.btnGenerate.TabIndex = 2;
@@ -136,7 +201,7 @@ namespace PrjRegistrar
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancel.ForeColor = System.Drawing.Color.White;
-            this.btnCancel.Location = new System.Drawing.Point(378, 220);
+            this.btnCancel.Location = new System.Drawing.Point(378, 300);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(90, 35);
             this.btnCancel.TabIndex = 3;
@@ -148,7 +213,7 @@ namespace PrjRegistrar
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 271);
+            this.ClientSize = new System.Drawing.Size(484, 351);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnGenerate);
             this.Controls.Add(this.groupBox1);
@@ -166,6 +231,7 @@ namespace PrjRegistrar
             this.panel1.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numTopStudents)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -175,6 +241,11 @@ namespace PrjRegistrar
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.NumericUpDown numTopStudents;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.ComboBox cboYearLevel;
+        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ComboBox cboCourse;
         private System.Windows.Forms.ComboBox cboSchoolYear;
         private System.Windows.Forms.Label label3;

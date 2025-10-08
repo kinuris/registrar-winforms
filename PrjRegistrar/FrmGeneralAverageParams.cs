@@ -12,6 +12,8 @@ namespace PrjRegistrar
         readonly string connectionString = ConfigurationManager.ConnectionStrings["filcis_db"].ConnectionString;
         public static string selectedSchoolYear = "";
         public static string selectedCourse = "";
+        public static string selectedYearLevel = "";
+        public static int selectedTopStudents = 0; // 0 means all students
         public bool parametersSelected = false;
 
         public FrmGeneralAverageParams()
@@ -25,6 +27,12 @@ namespace PrjRegistrar
             {
                 LoadSchoolYears();
                 LoadCourses();
+                LoadYearLevels();
+                
+                // Set default value for top students (0 = all students)
+                numTopStudents.Value = 0;
+                numTopStudents.Minimum = 0;
+                numTopStudents.Maximum = 1000;
             }
             catch (Exception ex)
             {
@@ -92,6 +100,44 @@ namespace PrjRegistrar
             }
         }
 
+        private void LoadYearLevels()
+        {
+            try
+            {
+                using (MySqlConnection mySqlConnection = new MySqlConnection(connectionString))
+                {
+                    mySqlConnection.Open();
+                    using (MySqlCommand mySqlCommand = new MySqlCommand("SELECT DISTINCT cis_yrlevel FROM mtbl_studprofile WHERE cis_yrlevel IS NOT NULL AND cis_yrlevel != '' ORDER BY cis_yrlevel", mySqlConnection))
+                    {
+                        using (MySqlDataReader mySqlDataReader = mySqlCommand.ExecuteReader())
+                        {
+                            cboYearLevel.Items.Clear();
+                            cboYearLevel.Items.Add("All Year Levels"); // Add option for all year levels
+                            
+                            while (mySqlDataReader.Read())
+                            {
+                                string yearLevel = mySqlDataReader["cis_yrlevel"].ToString();
+                                if (!string.IsNullOrEmpty(yearLevel))
+                                {
+                                    cboYearLevel.Items.Add(yearLevel);
+                                }
+                            }
+                            
+                            // Set default selection to "All Year Levels"
+                            if (cboYearLevel.Items.Count > 0)
+                            {
+                                cboYearLevel.SelectedIndex = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading year levels: {ex.Message}", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void BtnGenerate_Click(object sender, EventArgs e)
         {
             try
@@ -110,8 +156,17 @@ namespace PrjRegistrar
                     return;
                 }
 
+                if (cboYearLevel.SelectedIndex == -1)
+                {
+                    MessageBox.Show("Please select a Year Level.", "FilCIS", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    cboYearLevel.Focus();
+                    return;
+                }
+
                 selectedSchoolYear = cboSchoolYear.Text;
                 selectedCourse = cboCourse.Text;
+                selectedYearLevel = cboYearLevel.Text;
+                selectedTopStudents = (int)numTopStudents.Value;
                 parametersSelected = true;
 
                 this.Close();

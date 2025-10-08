@@ -35,9 +35,11 @@ namespace PrjRegistrar
                         // Get selected parameters
                         string schoolYear = FrmGeneralAverageParams.selectedSchoolYear;
                         string course = FrmGeneralAverageParams.selectedCourse;
+                        string yearLevel = FrmGeneralAverageParams.selectedYearLevel;
+                        int topStudents = FrmGeneralAverageParams.selectedTopStudents;
 
                         // Show the general average report
-                        FrmGeneralAverageReport frmReport = new FrmGeneralAverageReport(schoolYear, course);
+                        FrmGeneralAverageReport frmReport = new FrmGeneralAverageReport(schoolYear, course, yearLevel, topStudents);
                         frmReport.ShowDialog();
                         frmReport.Dispose();
                     }

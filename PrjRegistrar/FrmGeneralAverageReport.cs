@@ -13,14 +13,16 @@ namespace PrjRegistrar
         private string schoolYear;
         private string course;
         private string yearLevel;
+        private int topStudents;
 
-        // Updated constructor to accept year level parameter
-        public FrmGeneralAverageReport(string selectedSchoolYear, string selectedCourse, string selectedYearLevel = "All Year Levels")
+        // Updated constructor to accept year level and top students parameters
+        public FrmGeneralAverageReport(string selectedSchoolYear, string selectedCourse, string selectedYearLevel = "All Year Levels", int selectedTopStudents = 0)
         {
             InitializeComponent();
             schoolYear = selectedSchoolYear;
             course = selectedCourse;
             yearLevel = selectedYearLevel;
+            topStudents = selectedTopStudents;
         }
 
         // Keep backward compatibility with old constructor
@@ -30,6 +32,7 @@ namespace PrjRegistrar
             schoolYear = selectedSchoolYear;
             course = selectedCourse;
             yearLevel = "All Year Levels";
+            topStudents = 0;
         }
 
         private void FrmGeneralAverageReport_Load(object sender, EventArgs e)
@@ -44,10 +47,12 @@ namespace PrjRegistrar
                 {
                     if (this.Controls.Find("lblYearLevel", true).Length > 0)
                     {
-                        var lblYearLevelControl = this.Controls.Find("lblYearLevel", true)[0] as Label;
-                        if (lblYearLevelControl != null)
+                        var yearLevelControl = this.Controls.Find("lblYearLevel", true)[0] as Label;
+                        if (yearLevelControl != null)
                         {
-                            lblYearLevelControl.Text = $"Year Level: {(yearLevel == "All Year Levels" ? "All" : yearLevel)}";
+                            string yearLevelDisplay = yearLevel == "All Year Levels" ? "All" : yearLevel;
+                            string topStudentsDisplay = topStudents > 0 ? $" (Top {topStudents})" : "";
+                            yearLevelControl.Text = $"Year Level: {yearLevelDisplay}{topStudentsDisplay}";
                         }
                     }
                 }
@@ -77,6 +82,13 @@ namespace PrjRegistrar
                     if (!string.IsNullOrEmpty(yearLevel) && yearLevel != "All Year Levels")
                     {
                         yearLevelCondition = "AND sp.cis_yrlevel = @yearLevel";
+                    }
+
+                    // Build the LIMIT clause for top students
+                    string limitClause = "";
+                    if (topStudents > 0)
+                    {
+                        limitClause = $"LIMIT {topStudents}";
                     }
 
                     // Query to calculate general average and ranking
@@ -124,7 +136,8 @@ namespace PrjRegistrar
                         AND se.cis_fgrade NOT IN ('8', '9', '10', '11', '18', '56', '66')  -- Exclude non-numerical grades
                         GROUP BY sp.cis_fcuidno, sp.cis_studno, sp.cis_lastname, sp.cis_firstname, sp.cis_midname, sp.cis_course, sp.cis_yrlevel
                         HAVING general_average IS NOT NULL
-                        ORDER BY general_average ASC, sp.cis_lastname ASC, sp.cis_firstname ASC";
+                        ORDER BY general_average ASC, sp.cis_lastname ASC, sp.cis_firstname ASC
+                        {limitClause}";
 
                     using (MySqlCommand mySqlCommand = new MySqlCommand(query, mySqlConnection))
                     {
@@ -162,7 +175,8 @@ namespace PrjRegistrar
                         ConfigureDataGridView();
                         
                         // Update summary labels
-                        lblTotalStudents.Text = $"Total Students: {dataTable.Rows.Count}";
+                        string studentCountText = topStudents > 0 ? $"Showing Top {dataTable.Rows.Count} Students" : $"Total Students: {dataTable.Rows.Count}";
+                        lblTotalStudents.Text = studentCountText;
                         
                         if (dataTable.Rows.Count > 0)
                         {
@@ -458,6 +472,10 @@ namespace PrjRegistrar
             yPos += 25;
 
             string courseYearTitle = $"{course} {(string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "" : yearLevel)} {schoolYear}";
+            if (topStudents > 0)
+            {
+                courseYearTitle += $" (TOP {topStudents} STUDENTS)";
+            }
             e.Graphics.DrawString(courseYearTitle, subHeaderFont, blackBrush, leftMargin, yPos);
             yPos += 40;
 
@@ -493,9 +511,11 @@ namespace PrjRegistrar
             e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
             yPos += 18;
 
-            // Print student data
+            // Print student data with dynamic row limit
             int rowCount = 0;
-            int maxRowsPerPage = 22;
+            
+            // If topStudents is specified, show all requested students; otherwise limit to fit page
+            int maxRowsPerPage = topStudents > 0 ? topStudents : 22;
 
             foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
             {
@@ -564,7 +584,8 @@ namespace PrjRegistrar
                 saveFileDialog.DefaultExt = "csv";
                 
                 string yearLevelSuffix = string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "AllLevels" : $"YL{yearLevel}";
-                saveFileDialog.FileName = $"General_Average_{course}_{yearLevelSuffix}_{schoolYear}.csv";
+                string topStudentsSuffix = topStudents > 0 ? $"_Top{topStudents}" : "";
+                saveFileDialog.FileName = $"General_Average_{course}_{yearLevelSuffix}{topStudentsSuffix}_{schoolYear}.csv";
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -572,7 +593,8 @@ namespace PrjRegistrar
                     
                     // Add headers
                     string yearLevelText = string.IsNullOrEmpty(yearLevel) || yearLevel == "All Year Levels" ? "All Year Levels" : $"Year Level {yearLevel}";
-                    sb.AppendLine($"General Average Report - {course} - {yearLevelText} - {schoolYear}");
+                    string topStudentsText = topStudents > 0 ? $" (Top {topStudents} Students)" : "";
+                    sb.AppendLine($"General Average Report - {course} - {yearLevelText}{topStudentsText} - {schoolYear}");
                     sb.AppendLine($"Generated on: {DateTime.Now:MMMM dd, yyyy hh:mm tt}");
                     sb.AppendLine();
                     
