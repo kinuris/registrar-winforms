@@ -511,11 +511,23 @@ namespace PrjRegistrar
             e.Graphics.DrawLine(blackPen, leftMargin, yPos, rightMargin, yPos);
             yPos += 18;
 
-            // Print student data with dynamic row limit
+            // Print student data with smart row limiting
             int rowCount = 0;
             
-            // If topStudents is specified, show all requested students; otherwise limit to fit page
-            int maxRowsPerPage = topStudents > 0 ? topStudents : 22;
+            // When topStudents = 0, show ALL students (no limit)
+            // When topStudents > 0, show only that many students
+            // For preview/print, we may need to paginate large datasets
+            int maxRowsPerPage;
+            if (topStudents > 0)
+            {
+                // Show exactly the number requested (may span multiple pages)
+                maxRowsPerPage = topStudents;
+            }
+            else
+            {
+                // Show all students, but use reasonable pagination for very large datasets
+                maxRowsPerPage = dgvGeneralAverage.Rows.Count; // No limit - show all
+            }
 
             foreach (DataGridViewRow row in dgvGeneralAverage.Rows)
             {
